@@ -1,0 +1,211 @@
+%% Właściwe mocowanie
+
+clear all
+clc
+
+
+% Definicja paramertrów
+
+Rm = 359 * 10^6;                                                    % wytrzymałość na rozciąganie aluminium [Pa]
+Re = 230 * 10^6;                                                    % granica plastyczności aluminium [Pa]
+mc = 140;                                                           % masa Cełki [kg]
+ms = 60;                                                            % masa sternika [kg]
+Fg = (mc +ms) * 9.81;                                               % Siła grawitacyjna działająca na łódź [N]
+Fg = Fg/3;                                                          % Siła grawitacyjna działająca na jesno szkrzydło
+l = 55 * 10^(-3);                                                   % długość do pierwszego karbu [m]
+x = 11.35 * 10^(-3);                                                % długość od brzegu do mocowania [m]
+a = 6.5 * 10^(-3);                                                  % długość od śruby [m]
+z = 12.8 * 10^(-3);                                                 % średnica mocowania [m]
+
+ob = 21.76;                                                         % Obwód przylegający do cieczy [m]
+gamma = 0;                                                          % Kąt między cząsteczkami cieczy a metalem w przybliżeniu 0 
+np = 71.97;                                                         % Wartość napięcia powierzchniowego dla wody [N/m]
+
+% 1.1  Wyznaczeni siły potrzebnej do oderwania łodzi rozłożonej na 2
+% skrzydła
+
+Fn = (2 * np * (ob) * cosd(gamma))/2;                               % siła przylegania cieczy do kadłubu
+
+F = Fg + Fn
+
+Fu1 = Fg/3;                                                         % siła unoszenia przy zerowym wychyleniu 
+Fu2 = F;                                                            % siła unoszenia przy nie zerowym wychyleniu 
+m = 3;                                                              % masa elementu [kg]
+odsc = 15 * 10^(-3);                                                % odległośc środka cięzkości od punktu obrotu [m]
+mg = m * 9.81;                                                      % siła cięzkości [N]
+        
+% Obliczenie właściwej siły działającej na śrubę przy zerowym
+% wychyleniu skrzydła
+
+syms Fmin 
+
+row5 = (l-x+a) * Fmin + 0.5 * Fu1 * x^2 - 0.5 * Fu1 * (l-x)^2  + mg * odsc == 0;
+
+sol3 = solve(row5,Fmin);
+Fmin = eval(sol3)
+
+% obliczenie właściwej siły działającej na śrubę przy maksymalnym
+% wychyleniu mocowania 
+
+syms Fmax
+
+row5 = (l+a-x) * Fmax  + 0.5 * Fu2 * x^2 - 0.5 * Fu2 * (l-x)^2  + mg * (odsc) == 0;
+
+sol3 = solve(row5,Fmax);
+Fmax = eval(sol3)
+
+
+% Wyliczenie za pomocą transormaty Fourira Częstotliwości wzbudzanej przez
+% sternika
+% (użycie osobnego programu z wczytanymi danymi)
+
+% Warunek na docisk powierzchniowy (wyliczenie maksymalnej siły)
+
+% Mocowanie 1
+
+kd = 0.55 * Re;                                                     % zdefiniowanie wytrzymałości na dociskanie tętniące
+sze1 = 12 *10^(-3);
+dlu1 = 20 *10^(-3);
+
+Ad1 = sze1 * dlu1;                                                  % powierzchnia docisku       
+Pd1 = kd * Ad1                                                      % maksymalna siła dociskająca
+
+% Ruchome 1
+
+dlu2 = 55 *10^(-3);                                                 % [m]
+dlu3 = 31 *10^(-3);     
+dlu4 = 15 *10^(-3);
+sze2 = 40 *10^(-3);
+sze3 = 22 *10^(-3);
+sze4 = 15 *10^(-3);
+
+Ad2 = dlu3 * sze2 - dlu4 * sze4 + (dlu2 - dlu3) * (sze2 + sze3)/2;  % powierzchnia docisku 
+Ad3 = 10 * 10^(-3)* 32 *10^(-3) * 2;                                % powierzchnia docisku górnej części
+
+Pd2 = kd * Ad2                                                      % maksymalna siła dociskająca dolną część  
+Pd3 = kd * Ad3                                                      % maksymalna siła dociskająca górną część
+    
+% Warunek na rozciąganie mocowwania(ruchome1)
+
+ks = 0.35 * Re;                                                     % zdefiniowanie wytrzymałości na rozciąganie tętniące [Pa]
+Ar = (8-2) * 10^(-3) * (8-3) * 10^(-3);                             % Zdefiniowwanie przekroju rozciągającego
+Pr = ks * Ar                                                        % maksymalna siła rozciągająca na krytycznym przekroju
+
+% Warunek na zginanie 
+
+kg = 0.2 * Re;                                                      % zdefiniowanie wytrzymałości na zginanie dla naprężeń obustronnie tętniących [Pa]
+
+Iy = ((22 * 10^(-3))^3 * (8-2) * 10^(-3))/6;                        % zdefiniowanie momentu bezwładności dla osi y 
+Wg = Iy/(4 * 10^(-3));                                              % zdefiniowanie wskaźnika przekroju przy zginaniu 
+Mgsmax = Wg * kg                                                    % zdefiniowanie maksymalnego momentu gnącego [Nm]
+
+%% Warunek na wytrzymałość zmęczeniową
+
+% obciążenia symetryczne 
+% A = 839;
+% B = -0.102;                                                       % Parametry zdefiniowane dla Al 2024-T4
+% Nfw = logspace(0,6); Nf = 10^6;                                   % liczba cykli do zniszczenia (10^6 nieskończony czas życia)
+% naprezenia = A * Nfw.^B;                                          % matematyczny opis Krzywej S -N Materiału (Wohlera)
+% % loglog(Nfw,naprezenia)
+% % grid on
+% % title('Krzywa Wöhlera (S-N), skala logarytmiczna')
+% % ylabel('Naprężenia [MPa]')
+% % xlabel("Liczba cykli do zniszczenia, Nf")
+
+% Wytrzymałość zmęczeniowa dla obciążeń niesymetryczncyh Fmax != Fmin
+
+naprezenia_srednie1 = (Fmax + Fmin)/2;                              % wyznaczenie napreżeń średnich, zauważam, że są niezerowe
+
+% % wyznaczenie parametrów do wyznaczenia lini Goodmana 
+% naprezenia_srednie = 1:1:Rm;
+% 
+% Sut = Rm;
+% Sa =30;                                                           % amplituda napreżęń
+% Se = Sa/(1 - (naprezenia_srednie1/Rm))  ;                         % wytrzymałość zmęczeniowa dla naprężeń średnich = 0
+% amplituda_naprezeng = -Se/Sut * naprezenia_srednie + Se;          % zdefiniowanie lini Goodmana
+% amplituda_naprezenw = -naprezenia_srednie + Syt;                  % zdefiniowanie lini uplastycznienia 
+% plot(amplituda_naprezeng,naprezenia_srednie)
+% grid on; hold on;
+% plot(amplituda_naprezenw,naprezenia_srednie)
+
+
+
+%% Nit
+
+% 1.1 definicja parametrów
+
+Re_s = 250 * 10^6;                                                  % granica plastycznośći materiału [Pa]
+kt = Re_s *0.3;                                                     % wytrzymałość śruby na ścinanie [Pa]
+kd = 0.3 * Re;                                                      % wytrzymałość śrub na docisk powierzchniowy [Pa]
+
+kr = Re * 0.35;                                                     % wytrzymałośc blachy na rozciąganie [Pa]
+
+t3 = 10 * 10^(-3);                                                  % Grubośc jednego łącznika przymocowanego do hydroskrzydła [m] 
+t1 = t3;                                                            % zakładam symetryczność łącznika [m]
+t2 = 5 * 10^(-3);                                                   % grubość popychacza [m]
+
+n = 1;                                                              % ilośc śrub
+m = 2;                                                              % płaszczyzny ścinania
+
+% 1.3 Warunek na ścinanie 
+
+syms d1                                                             % równanie wyliczające średnicę śruby w zależności od siły 
+
+row1 = (4 * F)/(n * m * pi * d1^2) == kt;
+sol = solve(row1 ,d1);
+d1 = double(sol(sol > 0))
+
+
+% 1.4 Warunek na docisk 
+
+% 1.5 przypadek w którym wyliczam średnicę śruby 
+
+syms d2 d3
+row2 = F/(d2 * t1 * n) == kd;
+row3 = F/(d3 * t2 * n) == kd;
+sol1 = solve([row2, row3] ,[d2, d3]);
+d2 = double(sol1.d2);
+d3 = double(sol1.d3);
+
+d2 = d2 * 1.2;                                                      % Przyjmuję współczynnik bezpieczeństwa 20%
+d3 = d3 * 1.2;                                                      % Przyjmuję współczynnik bezpieczeństwa 20%
+
+% 1.6 przypadek w którym wyliczam noścność blachy 
+
+syms t                                                              % t minimalna powierzchnia dociskowa;
+row4 = F / (d1 * t * n) == kd;
+sol2 = solve(row4, t);
+t = eval(sol2);
+
+% 1.7 wyliczam siłę rozciągającą blachę łączącą oraz warunek na rozciąganie
+
+alfa = 0:15;
+Fx = F * sind(alfa);
+Fr = Fx .* cosd(alfa);
+
+b = Fr./(kr * t1) + d1;                                             % wysokość w rzucie od boku 
+max_b = max(b)
+
+% max_b = max_b * 1.2;                                              % Przyjmuję współczynnik bezpieczeństwa 20%
+%% Wyboczenie wału
+
+% 1.1 Definicja parametrów 
+
+l = 500 * 10^(-3);                                                  % długość [m]
+E = 210 * 10^9;                                                     % Moduł Younga materiału [GPa]
+n = 3;                                                              % części na króte jest podzielony wał przez podpory
+lw = 0.5 * l;                                                       % zakładam długość wyboczenia równiej 0.5 długości wału
+P_max_popychacz_sciskajaca = F * cosd(1)                            %  siła ściskająca
+r = 2.2 * 10^(-3);                                                  % promień wału
+Rh = 220 * 10^6; ;                                                  % granica proporjonalności materiału [MPa]
+I = (pi * r^4)/2;
+
+i = sqrt(I/(pi*r^2));                                               % promień bezwładności pręta
+lambda = lw/i;                                                      % warunek wyboczenia sprężystego, smukłość pręta 
+
+lg = pi * sqrt(E/Rh);                                               % smugłość graniczna materiału
+
+if lambda > lg                                                      % wtedy możliwe skorzystanie jest ze wzoru Eurela 
+sila_krytyczna_wyboczajaca = (pi^2 * n^2 * E * I)/(l^2)             % siła krytyczna
+srednica_walu_popychacza = 2 * r                                    % średnica wału 
+end 
