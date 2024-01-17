@@ -29,7 +29,7 @@ Fn = (2 * np * (ob) * cosd(gamma))/2;                               % siła przy
 F = Fg + Fn
 
 Fu1 = Fg/3;                                                         % siła unoszenia przy zerowym wychyleniu 
-Fu2 = F;                                                            % siła unoszenia przy nie zerowym wychyleniu 
+Fu2 = F;                                                            % siła unoszenia przy niezerowym wychyleniu 
 m = 3;                                                              % masa elementu [kg]
 odsc = 15 * 10^(-3);                                                % odległośc środka cięzkości od punktu obrotu [m]
 mg = m * 9.81;                                                      % siła cięzkości [N]
